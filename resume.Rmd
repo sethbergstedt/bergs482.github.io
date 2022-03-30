@@ -1,0 +1,7 @@
+---
+title: "Resume"
+author: "Seth Bergstedt"
+output: html_document
+---
+
+[Here](./Resume.pdf) is a link to my Resume.

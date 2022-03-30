@@ -1,0 +1,23 @@
+name: "Seth Bergstedt's Webpage"
+header-includes: 
+  \usepackage{graphicx}
+  \usepackage{float}
+  \usepackages{fontawesome}
+output_dir: "."
+navbar:
+  title: "General Information"
+  right:
+    - text: "Personal Accounts"
+      href: about.html
+    - icon: fa-envelope fa-lg
+      href: mailto:<bergs482@d.umn.edu>
+    - icon: fa-github fa-lg
+      href: http://github.com/sethbergstedt/
+    - icon: fa-brands fa-linkedin
+      href: https://www.linkedin.com/in/seth-bergstedt-259210236/
+menu: 
+  - text: "Resume"
+    href: resume.html
+output:  
+   html_document:
+    theme: flatly

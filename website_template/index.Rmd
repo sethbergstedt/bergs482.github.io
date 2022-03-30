@@ -1,0 +1,13 @@
+---
+title: "Seth Bergstedt"
+---
+
+<div style= "float : left; position : relative; top: 0px; width : 450px; height : 360px; padding-right: 24px; margin-bottom : 0px">
+![](./profile.jpg)
+
+</div>
+
+<font size = "4"> 
+I graduated from the University of Minnesota - Twin Cities with a B.S in Statistics and a Minor in Computer Science. Currently, I am pursuing an M.S. in Biostatistics from the University of Minnesota School of Public Health. 
+</font>  
+
