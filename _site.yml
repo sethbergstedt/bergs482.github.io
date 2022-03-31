@@ -15,9 +15,11 @@ navbar:
       href: http://github.com/sethbergstedt/
     - icon: fa-brands fa-linkedin
       href: https://www.linkedin.com/in/seth-bergstedt-259210236/
-menu: 
-  - text: "Resume"
-    href: resume.html
+  menu:
+    - text: "Resume"
+      href: resume.html
+    - text: "Recent Work"
+    - href: flexdashboard_template.html
 output:  
    html_document:
     theme: flatly
