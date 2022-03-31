@@ -7,6 +7,9 @@ output:
     vertical_layout: fill
 ---
 
+Column {.tabset}
+-------------------------------------------
+
 ```{r setup, include = FALSE, echo = FALSE}
 library(tidyverse)
 library(lubridate)
@@ -21,7 +24,7 @@ knitr::opts_knit$set(echo = TRUE,
 
 #Controlling figure output in markdown
 knitr::opts_chunk$set(
-#  fig.height =   
+  # fig.height = 10,
   fig.width = 6,
 #  fig.asp = .5,
   out.width = "90%",
@@ -46,43 +49,117 @@ options(digits = 4)
 options(dplyr.summarise.inform = FALSE)
 ```
 
-
-```{r data_read, include = FALSE}
-#Read in the nyc airbnb data set
-nyc_airbnb.df <- read_csv("./data/nyc_airbnb.csv", show_col_types = FALSE) %>%
-  mutate(rating = review_scores_location / 2) %>%
-  filter(
-    neighbourhood_group %in% "Manhattan",
-    room_type %in% "Entire home/apt",
-    (!is.na(rating)),
-    price <= 1000
-  ) %>%
-  dplyr::select(neighbourhood, rating, price,
-                room_type, lat, long, contains("review"))
-```
-
-Column {data-width=650}
------------------------------------------------------------------------
-
 ### Chart A
 
-```{r}
-data(mtcars)
-hist(mtcars$mpg)
-```
+```{r,echo=FALSE}
+cart = read.csv("./data/instacart.csv")
 
-Column {data-width=350}
------------------------------------------------------------------------
+cart_3.2 = cart %>%
+  group_by(aisle) %>%
+  summarize(num_orders = n()) %>%
+  mutate(aisle = fct_reorder(factor(str_to_title(aisle)),num_orders,.desc = TRUE))
+
+cart_plot_1 = ggplot(cart_3.2) +
+  geom_col(aes(x = aisle,y = num_orders,color = aisle)) + 
+  theme(axis.text.x = element_text(angle = 90,
+                                   vjust = 0.5,
+                                   size = 3),
+        legend.position = "none") + 
+  labs(x = "Aisle", y = "Number of Orders")
+
+ggplotly(cart_plot_1)
+```
 
 ### Chart B
 
-```{r}
-hist(mtcars$cyl)
+```{r,echo=FALSE}
+car_3.3 = cart %>%
+  group_by(department,aisle) %>%
+  summarize(num_orders_aisle = n()) %>%
+  group_by(department) %>%
+  summarize(num_orders_department = sum(num_orders_aisle),
+            department,aisle,num_orders_aisle) %>%
+  arrange(desc(num_orders_department)) %>%
+  ungroup() %>%
+  filter(department %in% unique(department)[1:6]) %>%
+  arrange(desc(num_orders_aisle)) %>%
+  slice(1:6) %>%
+  mutate(Department = fct_reorder(factor(str_to_title(department)),num_orders_department),
+         Aisle = fct_reorder2(factor(str_to_title(aisle)),num_orders_department,num_orders_aisle))
+
+cart_plot_2 = ggplot(car_3.3) + 
+  geom_col(aes(x = Aisle,y = num_orders_aisle,fill = Department)) +
+  theme(axis.text.x = element_text(angle = 30,
+                                   vjust = 0.5)) + 
+  labs(y = "Number of Orders")
+
+ggplotly(cart_plot_2)
 ```
 
 ### Chart C
 
-```{r}
-hist(mtcars$disp)
+```{r,echo=FALSE}
+file_dir = "./data/"
+file_list = list.files(file_dir)
+file_list = file_list[!str_detect(file_list, pattern = "aggregate|insta")]
+
+file_dat = tibble(
+  file_dir = file_dir,
+  file_list = file_list,
+  continent = str_remove_all(file_list,"covid19_") %>%
+            str_remove_all(".csv"),
+  file_paths = str_c(file_dir, file_list)
+)
+
+cov_dat = file_dat %>%
+  mutate(data = map(.x = file_paths, ~read_csv(.x, show_col_types = FALSE))) %>%
+  dplyr::select(!contains("file")) %>%
+  unnest() %>%
+  mutate(day_of_week = wday(date,
+                            label = TRUE,
+                            abbr = FALSE),
+         month = month(date,
+                       label = TRUE,
+                       abbr = FALSE),
+         location = as.factor(location),
+         continent = as.factor(continent),
+         new_deaths = ifelse(is.na(new_deaths),0,new_deaths),
+         new_cases = ifelse(is.na(new_cases),0,new_cases)) %>%
+  nest(location) %>%
+  mutate(cum_cases = cumsum(new_cases),
+         cum_deaths = cumsum(new_deaths)) %>%
+  unnest()
+
+dat_agg = cov_dat %>%
+  group_by(date) %>%
+  summarize(tot_cases = sum(new_cases),
+            tot_cases_smoothed = sum(new_cases_smoothed,na.rm = TRUE),
+            tot_deaths = sum(new_deaths),
+            tot_deaths_smoothed = sum(new_deaths_smoothed,na.rm = TRUE))
+
+cov_plot = ggplot(dat_agg) +
+  geom_col(aes(x = date, y = tot_cases), color = "skyblue3") +
+  geom_line(aes(x = date, y = tot_cases_smoothed), color = "skyblue4", size = 1.1) +
+  scale_x_date(date_breaks = "109 days",
+               date_labels = "%D") +
+  scale_y_continuous(labels = scales::comma) +
+  labs(title = "Global COVID-19 Cases 7-day Rolling Average",
+       x = "Date", y = "Number of New COVID-19 Cases")
+
+dat_agg %>%
+  mutate(txt = str_c("Date: ", date,
+                 "\nNew Cases: ", tot_cases)) %>%
+  plot_ly(
+    x = ~date,
+    y = ~tot_cases,
+    type = "bar",
+    text = ~txt,
+    alpha = 0.8
+  ) %>%
+  layout(
+    title = "Global COVID-19 Cases 7-day Rolling Average",
+    xaxis = list(title = "Date"),
+    yaxis = list(title = "Number of New COVID-19 Cases")
+  )
 ```
 
