@@ -15,7 +15,7 @@ navbar:
       href: http://github.com/sethbergstedt/
     - icon: fa-brands fa-linkedin
       href: https://www.linkedin.com/in/seth-bergstedt-259210236/
-    menu:
+      menu:
       - text: "Resume"
         href: resume.html
       - text: "Recent Work"
