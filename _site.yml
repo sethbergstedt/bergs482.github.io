@@ -16,11 +16,14 @@ navbar:
     - icon: fa-brands fa-linkedin
       href: https://www.linkedin.com/in/seth-bergstedt-259210236/
     - icon: fa-solid fa-scroll-old
+    - text: "Resume"
+      href: resume.html
       menu:
-      - text: "Resume"
-        href: resume.html
       - text: "Recent Work"
+      - text: "Interactive Dashboard"
         href: flexdashboard_template.html
+      - text: "Spatial Dashboard"
+        href: spatial_flexdashboard.html
 output:  
    html_document:
     theme: flatly

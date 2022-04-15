@@ -1,0 +1,167 @@
+---
+title: "Spatial Flexdashboard"
+author: "Seth Bergstedt"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r, include=FALSE}
+library(tidyverse)
+library(plotly)
+library(leaflet)
+library(sf)
+library(ggmap)
+library(tidycensus)
+library(ggthemes)
+library(osmdata)
+library(viridis)
+```
+
+Column {.tabset}
+----------------------------------------------
+
+### Chart A
+
+```{r}
+osm_natural_df = opq(bbox = "Minnesota", timeout = 100) %>%
+  add_osm_feature(key = "natural", value = c("beach", "cave_entrance", "hot_spring")) %>%
+  osmdata_sf()
+
+natural_points_df = osm_natural_df$osm_points %>%
+  janitor::clean_names()
+
+filtered_natural = natural_points_df %>%
+  filter(!is.na(natural)) %>%
+  mutate(point_labs = str_c("Name: ",
+                            name,
+                            "Feature Type: ",
+                            str_to_title(str_replace(natural,"_"," ")),
+                            "/nWheelchair Access: ",
+                            str_to_title(wheelchair)))
+
+nat_types <- levels(factor(filtered_natural$natural))
+n_types    <- length(nat_types)
+my_pallete <- colorFactor(viridis_pal(option = "D")(n_types), domain = nat_types)
+  
+leaflet(data = filtered_natural) %>%
+  addProviderTiles('CartoDB.Positron') %>%
+  addCircleMarkers(
+    color   = ~my_pallete(nat_types),
+    opacity = 0.4,
+    weight  = 2, #outline strength
+    radius  = 4 #size of circle
+  ) %>%
+  addLegend(
+    title    = "Natural Feature Type",
+    position = "bottomright",
+    colors   = viridis_pal(option = "D")(n_types),
+    labels   =  str_to_title(str_replace(nat_types,"_"," "))
+  )
+```
+
+### Chart B
+
+```{r,message=FALSE}
+#register_google(key = "AIzaSyAnsdGDyG3ORCE6LQvjgsq80g7Zc0UTu-8")
+#census_api_key("bc5aac74fb81089fe6541e6f3e784699fd3aeff2", install = TRUE)
+#options(tigris_use_cache = TRUE)
+
+#hennepin_bb = osmdata::getbb("hennepin county,MN")
+
+#hennepin_base_map = get_map(location = hennepin_bb,
+ #                           source = "stamen",
+ #                           maptype = "watercolor",
+  #                          crop = TRUE)
+
+
+mn_population.df <- get_acs(
+  geography = "tract",
+  variables = "B01003_001", #Code for total population
+  state     = "MN",
+  county    = "Hennepin",
+  year      = 2020,
+  geometry  = TRUE
+)
+
+mn_pop.df = mn_population.df %>%
+  mutate(
+    tract = str_split(NAME, ",") %>%
+                 map_chr(1) %>%
+                 str_remove("Census Tract "),
+    text_label = str_c(
+                  "Tract: ",
+                  tract,
+                  "\nTotal Population: ",
+                  scales::comma(estimate)
+                 ))
+
+hennepin_pop_gg = ggplot() +
+  geom_sf(data = mn_pop.df,
+          aes(fill = estimate, text = text_label),
+          color = "black", size = 0.15) +
+  labs(title = "Hennepin County, MN 2020 ACS Population by Tract") +
+  scale_fill_viridis_c("Total Population", labels = scales::comma) +
+  theme_map() +
+  theme(
+    plot.title   = element_text(size  = 16,
+                                hjust = 0.5),
+    legend.text  = element_text(size = 16),
+    legend.title = element_text(size = 16),
+    legend.position = "right"
+  )
+  
+
+ggplotly(hennepin_pop_gg,
+         tooltip = "text",
+         height  = 600,
+         width   = 800) %>%
+    style(hoveron = "fills")
+```
+
+### Chart C
+
+```{r}
+mn_births.df <- get_acs(
+  geography = "county",
+  variables = c("Births" = "B13002_001",
+                "Population" = "B01003_001"), 
+  state     = "MN",
+  year      = 2020,
+  geometry  = TRUE,
+  output = "wide"
+)
+
+mn_births = mn_births.df %>%
+  mutate(births_to_pop = BirthsE/PopulationE,
+         text_label = str_c("Population: ",
+                            scales::comma(PopulationE),
+                            "\nBirths: ",
+                            scales::comma(BirthsE),
+                            "\nBirths/Population: ",
+                            scales::percent(births_to_pop)))
+
+mn_births_gg = ggplot() +
+  geom_sf(data = mn_births,
+          aes(fill = births_to_pop, text = text_label),
+          color = "black", size = 0.15) +
+  labs(title = "Minnesota 2020 ACS Births/Population by County") +
+  scale_fill_viridis_c("Births/Population", labels = scales::percent) +
+  theme_map() +
+  theme(
+    plot.title   = element_text(size  = 16,
+                                hjust = 0.5),
+    legend.text  = element_text(size = 16),
+    legend.title = element_text(size = 16),
+    legend.position = "right"
+  )
+  
+
+ggplotly(mn_births_gg,
+         tooltip = "text",
+         height  = 600,
+         width   = 800) %>%
+    style(hoveron = "fills")
+```
+
