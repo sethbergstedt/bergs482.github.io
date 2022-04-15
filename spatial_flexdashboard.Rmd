@@ -65,7 +65,7 @@ leaflet(data = filtered_natural) %>%
 
 ```{r,message=FALSE}
 #register_google(key = "AIzaSyAnsdGDyG3ORCE6LQvjgsq80g7Zc0UTu-8")
-#census_api_key("bc5aac74fb81089fe6541e6f3e784699fd3aeff2", install = TRUE)
+census_api_key("bc5aac74fb81089fe6541e6f3e784699fd3aeff2")
 #options(tigris_use_cache = TRUE)
 
 #hennepin_bb = osmdata::getbb("hennepin county,MN")
