@@ -17,8 +17,8 @@ navbar:
       href: https://www.linkedin.com/in/seth-bergstedt-259210236/
     - text: "Resume"
       href: resume.html
+    - text: "Recent Work"
       menu:
-      - text: "Recent Work"
       - text: "Interactive Dashboard"
         href: flexdashboard_template.html
       - text: "Spatial Dashboard"
